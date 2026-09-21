@@ -4,7 +4,7 @@ Este documento registra y describe de manera detallada los errores encontrados d
 
 ---
 
-## 📋 Resumen de Errores Identificados y Soluciones
+##  Resumen de Errores Identificados y Soluciones
 
 | # | Sección / Celda | Error Observado | Causa Raíz | Solución Aplicada |
 |---|---|---|---|---|
@@ -16,7 +16,7 @@ Este documento registra y describe de manera detallada los errores encontrados d
 
 ---
 
-## 🔍 Detalle Técnico de Cada Error
+##  Detalle Técnico de Cada Error
 
 ### Error 1: Ausencia del Módulo `pyspark`
 - **Ubicación:** Bloque de importación de librerías (`Celda 3`).
@@ -113,25 +113,8 @@ Este documento registra y describe de manera detallada los errores encontrados d
 
 ---
 
-## 🚀 Flujo de Ejecución del Cuaderno
 
-```mermaid
-flowchart TD
-    A["Celda 1: Inicialización con findspark"] --> B["Celda 3: Importación de librerías y tabulate"]
-    B --> C["Celda 5 y 6: SparkSession y LogLevel ERROR"]
-    C --> D["Celda 9: Carga de Iris.csv y renombrado de columnas"]
-    D --> E["Celdas 11-15: Análisis exploratorio (count, schema, show, describe)"]
-    E --> F["Celda 17: StringIndexer (species a species_indx)"]
-    F --> G["Celdas 20-24: Feature Engineering (DenseVector: label y features)"]
-    G --> H["Celdas 27-29: Normalización con StandardScaler"]
-    H --> I["Celda 31: Partición en Train (90%) y Test (10%)"]
-    I --> J["Celdas 34-37: Entrenamiento y Evaluación (Decision Tree, Random Forest, Naive Bayes)"]
-    J --> K["Celda 40: Tabla comparativa de métricas"]
-```
-
----
-
-## 💻 Instrucciones para Ejecutar en la Máquina Virtual
+##  Instrucciones para Ejecutar en la Máquina Virtual
 
 1. Abre una terminal dentro de la máquina virtual o inicia Jupyter Notebook:
    ```bash
