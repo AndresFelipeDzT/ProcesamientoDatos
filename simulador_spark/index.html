@@ -1,0 +1,1792 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Simulador Apache Spark | Procesamiento de Datos a Gran Escala</title>
+  <style>
+    /* ==========================================================================
+       Estilos del Simulador Autónomo de Apache Spark (ProcDatos)
+       Diseñado en Modo Oscuro de Alta Densidad, 100% Autónomo
+       ========================================================================== */
+    :root {
+      --bg-primary: #0f172a;
+      --bg-secondary: #1e293b;
+      --bg-card: #1e293b;
+      --border-color: #334155;
+      --text-primary: #f8fafc;
+      --text-secondary: #94a3b8;
+      --text-muted: #64748b;
+      --spark-orange: #f97316;
+      --spark-orange-hover: #ea580c;
+      --accent-blue: #38bdf8;
+      --success-green: #22c55e;
+      --warning-amber: #f59e0b;
+      --danger-red: #ef4444;
+      --font-main: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--font-main);
+      background-color: var(--bg-primary);
+      color: var(--text-primary);
+      line-height: 1.5;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .navbar {
+      background-color: var(--bg-secondary);
+      border-bottom: 1px solid var(--border-color);
+      padding: 0.75rem 1.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .nav-brand {
+      display: flex;
+      align-items: center;
+      gap: 0.85rem;
+    }
+
+    .spark-icon-svg {
+      width: 32px;
+      height: 32px;
+      fill: var(--spark-orange);
+      filter: drop-shadow(0 0 6px rgba(249, 115, 22, 0.5));
+    }
+
+    .nav-brand h1 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      letter-spacing: -0.025em;
+    }
+
+    .nav-brand h1 span { color: var(--spark-orange); }
+
+    .subtitle {
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+    }
+
+    .simulation-controls {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    .tick-badge {
+      background-color: #0f172a;
+      border: 1px solid var(--border-color);
+      padding: 0.35rem 0.75rem;
+      border-radius: 6px;
+      font-family: var(--font-mono);
+      font-weight: 700;
+      display: flex;
+      gap: 0.4rem;
+    }
+
+    .tick-badge .label { color: var(--text-muted); }
+    .tick-badge .value { color: var(--accent-blue); min-width: 2.5rem; text-align: right; }
+
+    .btn {
+      padding: 0.45rem 0.9rem;
+      border-radius: 6px;
+      border: none;
+      font-size: 0.825rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      transition: all 0.15s ease-in-out;
+    }
+
+    .btn-primary { background-color: var(--spark-orange); color: #fff; }
+    .btn-primary:hover { background-color: var(--spark-orange-hover); }
+
+    .btn-secondary { background-color: var(--border-color); color: var(--text-primary); }
+    .btn-secondary:hover { background-color: #475569; }
+
+    .btn-danger {
+      background-color: rgba(239, 68, 68, 0.15);
+      color: #f87171;
+      border: 1px solid rgba(239, 68, 68, 0.3);
+    }
+    .btn-danger:hover { background-color: rgba(239, 68, 68, 0.3); }
+
+    .btn-success { background-color: var(--success-green); color: #fff; }
+    .btn-success:hover { background-color: #16a34a; }
+
+    .btn-block { width: 100%; justify-content: center; padding: 0.6rem; }
+
+    .speed-selector select {
+      background-color: var(--bg-primary);
+      border: 1px solid var(--border-color);
+      color: var(--text-primary);
+      padding: 0.4rem 0.6rem;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      outline: none;
+    }
+
+    .scenario-bar {
+      background-color: #162032;
+      border-bottom: 1px solid var(--border-color);
+      padding: 0.5rem 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    .scenario-label {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      margin-right: 0.5rem;
+    }
+
+    .btn-scenario {
+      background-color: rgba(51, 65, 85, 0.6);
+      border: 1px solid var(--border-color);
+      color: var(--text-primary);
+      padding: 0.35rem 0.85rem;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .btn-scenario:hover {
+      background-color: rgba(56, 189, 248, 0.2);
+      border-color: var(--accent-blue);
+      color: var(--accent-blue);
+    }
+
+    .btn-scenario.highlight {
+      border-color: rgba(249, 115, 22, 0.5);
+      background-color: rgba(249, 115, 22, 0.15);
+      color: #fdba74;
+    }
+
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: 1.4fr 1fr;
+      gap: 1.25rem;
+      padding: 1.25rem;
+      flex: 1;
+    }
+
+    .card {
+      background-color: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      padding: 1.25rem;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 0.6rem;
+    }
+
+    .card-header h2 {
+      font-size: 1rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: #e2e8f0;
+    }
+
+    .cluster-summary {
+      display: flex;
+      gap: 1rem;
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+    }
+    .cluster-summary strong { color: var(--accent-blue); }
+
+    .driver-container { margin-bottom: 1rem; }
+
+    .driver-card {
+      background-color: #0f172a;
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      border-radius: 8px;
+      padding: 0.6rem 0.9rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    .badge-driver {
+      background-color: rgba(56, 189, 248, 0.15);
+      color: var(--accent-blue);
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+
+    .driver-host {
+      font-size: 0.75rem;
+      font-family: var(--font-mono);
+      color: var(--text-muted);
+    }
+
+    .driver-stats {
+      font-size: 0.75rem;
+      display: flex;
+      gap: 1rem;
+      color: var(--text-secondary);
+    }
+
+    .workers-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 0.85rem;
+    }
+
+    .worker-card {
+      background-color: #0f172a;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 0.85rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+      transition: border-color 0.2s ease;
+    }
+
+    .worker-card.dead {
+      border-color: rgba(239, 68, 68, 0.5);
+      background-color: rgba(239, 68, 68, 0.05);
+    }
+
+    .worker-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .worker-title {
+      font-weight: 700;
+      font-size: 0.85rem;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .badge-status {
+      font-size: 0.65rem;
+      padding: 0.15rem 0.4rem;
+      border-radius: 4px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .badge-healthy { background-color: rgba(34, 197, 94, 0.15); color: var(--success-green); }
+    .badge-dead { background-color: rgba(239, 68, 68, 0.2); color: var(--danger-red); }
+
+    .metric-row {
+      display: flex;
+      flex-direction: column;
+      gap: 0.2rem;
+      font-size: 0.75rem;
+    }
+
+    .metric-label-row {
+      display: flex;
+      justify-content: space-between;
+      color: var(--text-secondary);
+    }
+
+    .bar-bg {
+      background-color: #1e293b;
+      height: 6px;
+      border-radius: 3px;
+      overflow: hidden;
+    }
+
+    .bar-fill-cpu { background-color: var(--spark-orange); height: 100%; transition: width 0.3s ease; }
+    .bar-fill-ram { background-color: var(--accent-blue); height: 100%; transition: width 0.3s ease; }
+
+    .worker-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 0.4rem;
+      margin-top: 0.2rem;
+    }
+
+    .btn-worker-kill {
+      font-size: 0.65rem;
+      padding: 0.2rem 0.5rem;
+      background-color: rgba(239, 68, 68, 0.15);
+      color: #fca5a5;
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .btn-worker-kill:hover { background-color: var(--danger-red); color: #fff; }
+
+    .btn-worker-revive {
+      font-size: 0.65rem;
+      padding: 0.2rem 0.5rem;
+      background-color: rgba(34, 197, 94, 0.15);
+      color: #86efac;
+      border: 1px solid rgba(34, 197, 94, 0.3);
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .btn-worker-revive:hover { background-color: var(--success-green); color: #fff; }
+
+    .workload-form {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.75rem;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+
+    .form-group label {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+    }
+
+    .form-group input,
+    .form-group select {
+      background-color: #0f172a;
+      border: 1px solid var(--border-color);
+      color: var(--text-primary);
+      padding: 0.45rem 0.65rem;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      outline: none;
+    }
+    .form-group input:focus,
+    .form-group select:focus { border-color: var(--accent-blue); }
+
+    .queue-container h3 {
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--text-secondary);
+      margin-bottom: 0.4rem;
+    }
+
+    .queue-list {
+      background-color: #0f172a;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      padding: 0.5rem;
+      min-height: 70px;
+      max-height: 120px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+    }
+
+    .queue-item {
+      background-color: #1e293b;
+      border: 1px solid var(--border-color);
+      padding: 0.35rem 0.6rem;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .empty-state {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      text-align: center;
+      padding: 1rem 0;
+    }
+
+    .job-meta {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 0.5rem;
+      font-size: 0.75rem;
+      background-color: #0f172a;
+      border: 1px solid var(--border-color);
+      padding: 0.6rem 0.9rem;
+      border-radius: 6px;
+      margin-bottom: 0.75rem;
+    }
+
+    .job-meta code { color: var(--spark-orange); font-family: var(--font-mono); }
+
+    .progress-bar-container { margin-bottom: 1rem; }
+
+    .progress-bar-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+      margin-bottom: 0.25rem;
+    }
+
+    .progress-bar {
+      background-color: #0f172a;
+      height: 10px;
+      border-radius: 5px;
+      overflow: hidden;
+      border: 1px solid var(--border-color);
+    }
+
+    .progress-fill {
+      background: linear-gradient(90deg, var(--spark-orange), var(--accent-blue));
+      height: 100%;
+      transition: width 0.3s ease;
+    }
+
+    .stages-container, .tasks-container { margin-top: 0.75rem; }
+
+    .stages-container h3, .tasks-container h3 {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.4rem;
+    }
+
+    .stages-list { display: flex; flex-direction: column; gap: 0.4rem; }
+
+    .stage-card {
+      background-color: #0f172a;
+      border: 1px solid var(--border-color);
+      padding: 0.5rem 0.75rem;
+      border-radius: 6px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.75rem;
+    }
+
+    .stage-card.shuffle { border-left: 3px solid var(--warning-amber); }
+    .stage-card.result { border-left: 3px solid var(--success-green); }
+
+    .tasks-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(65px, 1fr));
+      gap: 0.4rem;
+      max-height: 150px;
+      overflow-y: auto;
+      padding: 0.2rem;
+    }
+
+    .task-cell {
+      background-color: #0f172a;
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      padding: 0.3rem 0.2rem;
+      text-align: center;
+      font-size: 0.65rem;
+      font-family: var(--font-mono);
+      display: flex;
+      flex-direction: column;
+      gap: 0.15rem;
+      transition: all 0.2s ease;
+    }
+
+    .task-cell.pending { border-color: var(--text-muted); color: var(--text-muted); }
+    .task-cell.running { border-color: var(--accent-blue); background-color: rgba(56, 189, 248, 0.15); color: #bae6fd; font-weight: bold; }
+    .task-cell.success { border-color: var(--success-green); background-color: rgba(34, 197, 94, 0.15); color: #86efac; }
+    .task-cell.recomputing { border-color: var(--spark-orange); background-color: rgba(249, 115, 22, 0.2); color: #fed7aa; animation: pulse 1s infinite; }
+
+    @keyframes pulse {
+      0% { opacity: 0.6; }
+      50% { opacity: 1; }
+      100% { opacity: 0.6; }
+    }
+
+    .metrics-section { grid-column: span 2; }
+
+    .kpi-pills { display: flex; gap: 0.75rem; }
+
+    .kpi-pill {
+      background-color: #0f172a;
+      border: 1px solid var(--border-color);
+      padding: 0.3rem 0.75rem;
+      border-radius: 6px;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+    }
+
+    .kpi-pill.alert { border-color: rgba(249, 115, 22, 0.4); }
+    .kpi-pill.alert .kpi-value { color: var(--spark-orange); }
+
+    .kpi-label { font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; }
+    .kpi-value { font-size: 0.9rem; font-weight: 700; color: var(--accent-blue); font-family: var(--font-mono); }
+
+    .charts-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.25rem;
+      min-height: 180px;
+    }
+
+    .chart-wrapper {
+      background-color: #0f172a;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 0.75rem;
+      height: 200px;
+      position: relative;
+    }
+
+    .chart-canvas {
+      width: 100% !important;
+      height: 100% !important;
+    }
+
+    .logs-section { grid-column: span 2; }
+
+    .live-indicator {
+      font-size: 0.65rem;
+      font-weight: 700;
+      color: var(--success-green);
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+    }
+
+    .live-indicator .dot {
+      width: 6px;
+      height: 6px;
+      background-color: var(--success-green);
+      border-radius: 50%;
+      box-shadow: 0 0 6px var(--success-green);
+    }
+
+    .event-logs {
+      background-color: #090d16;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      padding: 0.75rem;
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      max-height: 140px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column-reverse;
+      gap: 0.35rem;
+    }
+
+    .log-entry { display: flex; gap: 0.75rem; line-height: 1.4; }
+    .log-tick { color: var(--text-muted); min-width: 50px; }
+    .log-type { font-weight: 700; min-width: 130px; }
+    .log-type.JOB_SUBMITTED { color: var(--accent-blue); }
+    .log-type.JOB_COMPLETED { color: var(--success-green); }
+    .log-type.WORKER_CRASH { color: var(--danger-red); }
+    .log-type.LINEAGE_RECOMPUTATION { color: var(--spark-orange); }
+    .log-type.WORKER_RECOVERED { color: #34d399; }
+    .log-msg { color: #cbd5e1; }
+
+    .footer {
+      text-align: center;
+      padding: 1rem;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      border-top: 1px solid var(--border-color);
+      background-color: var(--bg-secondary);
+    }
+
+    @media (max-width: 1024px) {
+      .dashboard-grid { grid-template-columns: 1fr; }
+      .metrics-section, .logs-section { grid-column: span 1; }
+      .charts-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Barra de Navegación Superior -->
+  <header class="navbar">
+    <div class="nav-brand">
+      <!-- Icono de llama Spark en SVG puro -->
+      <svg class="spark-icon-svg" viewBox="0 0 24 24">
+        <path d="M12 2C11.5 2 11 2.5 11 3.1C11 4.5 10 5.8 8.8 6.5C7.2 7.5 6 9.3 6 11.5C6 14.8 8.7 17.5 12 17.5C12.3 17.5 12.6 17.5 12.9 17.4C12.3 16.5 12 15.3 12 14C12 11.5 13.5 9.3 15.5 8.2C15.8 8 16 7.6 16 7.2C16 6.5 15.3 6 14.7 6.2C13.8 6.5 13 6.9 12.3 7.5C13.3 5.8 13.5 3.8 12.8 2.2C12.6 2.1 12.3 2 12 2M12 19C7.6 19 4 15.4 4 11C4 8.5 5.2 6.3 7.1 5C6.4 6.7 6.2 8.6 6.8 10.4C7.1 9.8 7.6 9.3 8.2 8.9C8.7 8.5 9.3 8.3 10 8.2C9.4 9.3 9 10.6 9 12C9 14.5 10.5 16.7 12.5 17.8C12.3 18.2 12.2 18.6 12 19Z"/>
+      </svg>
+      <div>
+        <h1>Apache Spark <span>Simulator</span></h1>
+        <p class="subtitle">Procesamiento de Datos a Gran Escala — RDD, Linaje, FIFO y Tolerancia a Fallos (Entregable Autónomo)</p>
+      </div>
+    </div>
+
+    <!-- Controles de Simulación Globales -->
+    <div class="simulation-controls">
+      <div class="tick-badge">
+        <span class="label">TICK:</span>
+        <span id="current-tick" class="value">0</span>
+      </div>
+
+      <button id="btn-play" class="btn btn-primary" onclick="togglePlay()" title="Iniciar/Pausar simulación continua">
+        <span id="play-text">▶ Iniciar</span>
+      </button>
+
+      <button id="btn-step" class="btn btn-secondary" onclick="stepOnce()" title="Avanzar exactamente 1 tick">
+        ⏭ +1 Tick
+      </button>
+
+      <button id="btn-reset" class="btn btn-danger" onclick="resetCluster()" title="Reiniciar clúster">
+        🔄 Reiniciar
+      </button>
+
+      <div class="speed-selector">
+        <select id="speed-select" onchange="updateSpeed(this.value)">
+          <option value="800">0.5x Lento</option>
+          <option value="400" selected>1.0x Normal</option>
+          <option value="150">2.5x Rápido</option>
+        </select>
+      </div>
+    </div>
+  </header>
+
+  <!-- Barra de Escenarios Predefinidos -->
+  <div class="scenario-bar">
+    <span class="scenario-label">⚡ Escenarios de Prueba:</span>
+    <button class="btn-scenario" onclick="loadScenario(1)">
+      <strong>#1:</strong> Ejecución Normal
+    </button>
+    <button class="btn-scenario highlight" onclick="loadScenario(2)">
+      <strong>#2:</strong> Caída de Worker y Linaje (Resiliencia)
+    </button>
+    <button class="btn-scenario" onclick="loadScenario(3)">
+      <strong>#3:</strong> Data Skew (Stragglers)
+    </button>
+    <button class="btn-scenario" onclick="loadScenario(4)">
+      <strong>#4:</strong> Concurrencia Multiusuario (FIFO)
+    </button>
+  </div>
+
+  <!-- Contenedor Principal Dashboard -->
+  <main class="dashboard-grid">
+
+    <!-- SECCIÓN 1: Topología del Clúster (Driver y Workers) -->
+    <section class="card cluster-section">
+      <div class="card-header">
+        <h2>🖥️ Topología del Clúster Spark</h2>
+        <div class="cluster-summary">
+          <span><strong id="cores-summary">0 / 16</strong> Cores en uso</span>
+          <span><strong id="ram-summary">0 / 16384 MB</strong> RAM usada</span>
+        </div>
+      </div>
+
+      <!-- Nodo Driver -->
+      <div class="driver-container">
+        <div class="driver-card">
+          <div class="driver-info">
+            <span class="badge badge-driver">🧠 Spark Driver (Master)</span>
+            <span class="driver-host">driver-master (192.168.1.100)</span>
+          </div>
+          <div class="driver-stats">
+            <span>RAM: <strong>2048 MB</strong></span>
+            <span>Jobs Históricos: <strong id="driver-jobs-count">0</strong></span>
+            <span>Planificador: <strong>FIFO Scheduler</strong></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Cuadrícula de Nodos Worker -->
+      <div id="workers-grid" class="workers-grid">
+        <!-- Renderizado dinámicamente con JavaScript -->
+      </div>
+    </section>
+
+    <!-- SECCIÓN 2: Generador de Cargas de Trabajo (Workload Submitter) -->
+    <section class="card workload-section">
+      <div class="card-header">
+        <h2>📤 Generar Carga de Trabajo</h2>
+      </div>
+      <form id="workload-form" class="workload-form" onsubmit="event.preventDefault(); submitCustomJob();">
+        <div class="form-group">
+          <label for="job-type">Perfil / Tipo de Trabajo:</label>
+          <select id="job-type" onchange="updateJobDefaults()">
+            <option value="analyst">Business Analyst (Filtro Narrow + count, rápido)</option>
+            <option value="etl" selected>Data Engineer (Batch ETL con Shuffle: groupByKey + reduceByKey)</option>
+            <option value="ml">Data Scientist (Machine Learning iterativo con .persist() en RAM)</option>
+            <option value="burst">Ráfaga Multiusuario (3 trabajos concurrentes simultáneos)</option>
+          </select>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="user-id">Usuario:</label>
+            <input type="text" id="user-id" value="engineer_carlos" required>
+          </div>
+          <div class="form-group">
+            <label for="data-size">Tamaño Datos (MB):</label>
+            <input type="number" id="data-size" value="300" min="20" max="2000" step="20">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="num-partitions">Particiones (Shards):</label>
+            <input type="number" id="num-partitions" value="8" min="2" max="32">
+          </div>
+          <div class="form-group">
+            <label for="skew-factor">Factor de Sesgo (Skew):</label>
+            <input type="number" id="skew-factor" value="1.0" min="1.0" max="5.0" step="0.5" title=">1.0 crea desbalance entre particiones">
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-success btn-block">
+          📥 Encolar Trabajo (Acción Spark)
+        </button>
+      </form>
+
+      <!-- Cola FIFO de Trabajos -->
+      <div class="queue-container">
+        <h3>📋 Cola FIFO de Espera (<span id="queue-count">0</span>)</h3>
+        <div id="queue-list" class="queue-list">
+          <p class="empty-state">No hay trabajos en espera. El clúster está libre.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECCIÓN 3: Monitor de Ejecución (Spark UI Stages & Tasks) -->
+    <section class="card execution-section">
+      <div class="card-header">
+        <h2>📊 Trabajo Activo (Spark UI Inspector)</h2>
+        <span id="active-job-badge" class="badge-status badge-dead">SIN TRABAJO ACTIVO</span>
+      </div>
+
+      <div id="active-job-details" class="active-job-details">
+        <div class="job-meta">
+          <div><strong>Job:</strong> <span id="job-name">-</span></div>
+          <div><strong>Usuario:</strong> <span id="job-user">-</span></div>
+          <div><strong>Acción:</strong> <code id="job-action">-</code></div>
+          <div><strong>Duración:</strong> <span id="job-duration">0 ticks</span></div>
+        </div>
+
+        <div class="progress-bar-container">
+          <div class="progress-bar-label">
+            <span>Progreso General de Tareas</span>
+            <span id="job-progress-pct">0%</span>
+          </div>
+          <div class="progress-bar">
+            <div id="job-progress-fill" class="progress-fill" style="width: 0%;"></div>
+          </div>
+        </div>
+
+        <!-- Tabla de Stages -->
+        <div class="stages-container">
+          <h3>Etapas Físicas (Stages divididos por Shuffle):</h3>
+          <div id="stages-list" class="stages-list">
+            <!-- Stages generados dinámicamente -->
+          </div>
+        </div>
+
+        <!-- Matriz de Tareas -->
+        <div class="tasks-container">
+          <h3>Matriz de Tareas por Partición:</h3>
+          <div id="tasks-grid" class="tasks-grid">
+            <!-- Tareas generadas dinámicamente -->
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECCIÓN 4: Métricas y Gráficos en Tiempo Real -->
+    <section class="card metrics-section">
+      <div class="card-header">
+        <h2>📈 Telemetría y Métricas en Tiempo Real</h2>
+        <div class="kpi-pills">
+          <div class="kpi-pill">
+            <span class="kpi-label">Shuffle Total</span>
+            <span id="kpi-shuffle" class="kpi-value">0 MB</span>
+          </div>
+          <div class="kpi-pill alert">
+            <span class="kpi-label">Recálculos Linaje</span>
+            <span id="kpi-recomputed" class="kpi-value">0</span>
+          </div>
+          <div class="kpi-pill">
+            <span class="kpi-label">Jobs Finalizados</span>
+            <span id="kpi-completed-jobs" class="kpi-value">0</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="charts-grid">
+        <div class="chart-wrapper">
+          <canvas id="cpuCanvas" class="chart-canvas"></canvas>
+        </div>
+        <div class="chart-wrapper">
+          <canvas id="ramCanvas" class="chart-canvas"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECCIÓN 5: Registro de Eventos y Resiliencia en Vivo -->
+    <section class="card logs-section">
+      <div class="card-header">
+        <h2>📜 Registro de Eventos del Clúster</h2>
+        <span class="live-indicator"><span class="dot"></span> EN VIVO</span>
+      </div>
+      <div id="event-logs" class="event-logs">
+        <!-- Eventos en tiempo real -->
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="footer">
+    <p>Simulador Educativo de Apache Spark — Desarrollado para la asignatura <strong>Procesamiento de Datos a Gran Escala</strong> (Pontificia Universidad Javeriana).</p>
+  </footer>
+
+  <!-- ==========================================================================
+       MOTOR COMPLETO DE SIMULACIÓN EN JAVASCRIPT PURO (100% AUTÓNOMO)
+       ========================================================================== -->
+  <script>
+    // ==========================================
+    // 1. Constantes y Estados del Dominio Spark
+    // ==========================================
+    let rddIdCounter = 0;
+    let stageIdCounter = 0;
+    let taskIdCounter = 0;
+    let jobIdCounter = 0;
+
+    class Partition {
+      constructor(index, rddId, sizeMb, recordsCount = 1000) {
+        this.index = index;
+        this.rddId = rddId;
+        this.sizeMb = sizeMb;
+        this.status = 'PENDING';
+        this.assignedWorkerId = null;
+        this.isCached = false;
+        this.recomputedCount = 0;
+        this.recordsCount = recordsCount;
+      }
+      markSuccess(cached = false) {
+        this.status = cached ? 'CACHED_RAM' : 'SUCCESS';
+        this.isCached = cached;
+      }
+      markLost() {
+        this.status = 'LOST';
+        this.isCached = false;
+        this.assignedWorkerId = null;
+        this.recomputedCount++;
+      }
+    }
+
+    class RDD {
+      constructor(name, operation, numPartitions, parents = [], dependencyType = 'NARROW', totalDataSizeMb = 100.0, skewFactor = 1.0) {
+        rddIdCounter++;
+        this.id = rddIdCounter;
+        this.name = name;
+        this.operation = operation;
+        this.numPartitions = numPartitions;
+        this.parents = parents;
+        this.dependencyType = dependencyType;
+        this.isCached = false;
+        this.storageLevel = 'NONE';
+        this.totalDataSizeMb = totalDataSizeMb;
+        this.partitions = this._createPartitions(skewFactor);
+      }
+      _createPartitions(skewFactor) {
+        const parts = [];
+        const baseSize = this.totalDataSizeMb / Math.max(1, this.numPartitions);
+        for (let i = 0; i < this.numPartitions; i++) {
+          let size = baseSize;
+          if (skewFactor > 1.0) {
+            if (i === 0) size = baseSize * skewFactor;
+            else size = Math.max(1.0, (this.totalDataSizeMb - (baseSize * skewFactor)) / Math.max(1, this.numPartitions - 1));
+          }
+          parts.push(new Partition(i, this.id, size));
+        }
+        return parts;
+      }
+      map(name = 'map()') {
+        return new RDD(name, 'map', this.numPartitions, [this], 'NARROW', this.totalDataSizeMb);
+      }
+      filter(name = 'filter()') {
+        return new RDD(name, 'filter', this.numPartitions, [this], 'NARROW', this.totalDataSizeMb * 0.7);
+      }
+      groupByKey(name = 'groupByKey()', numPartitions = null, skewFactor = 1.0) {
+        const parts = numPartitions !== null ? numPartitions : this.numPartitions;
+        return new RDD(name, 'groupByKey', parts, [this], 'WIDE', this.totalDataSizeMb, skewFactor);
+      }
+      reduceByKey(name = 'reduceByKey()', numPartitions = null) {
+        const parts = numPartitions !== null ? numPartitions : this.numPartitions;
+        return new RDD(name, 'reduceByKey', parts, [this], 'WIDE', this.totalDataSizeMb * 0.5);
+      }
+      persist(storageLevel = 'MEMORY_ONLY') {
+        this.isCached = true;
+        this.storageLevel = storageLevel;
+        return this;
+      }
+      getLineage() {
+        const visited = new Set();
+        const lineage = [];
+        const traverse = (node) => {
+          if (!visited.has(node.id)) {
+            visited.add(node.id);
+            for (const parent of node.parents) traverse(parent);
+            lineage.push(node);
+          }
+        };
+        traverse(this);
+        return lineage;
+      }
+    }
+
+    class Task {
+      constructor(taskId, stageId, partitionIndex, rddId, dataSizeMb, totalTicksNeeded = 10) {
+        this.taskId = taskId;
+        this.stageId = stageId;
+        this.partitionIndex = partitionIndex;
+        this.rddId = rddId;
+        this.dataSizeMb = dataSizeMb;
+        this.totalTicksNeeded = totalTicksNeeded;
+        this.elapsedTicks = 0;
+        this.workerId = null;
+        this.status = 'PENDING';
+        this.attempt = 1;
+        this.isRecomputation = false;
+      }
+      progressPct() {
+        if (this.totalTicksNeeded === 0) return 100.0;
+        return Math.min(100.0, Math.round((this.elapsedTicks / this.totalTicksNeeded) * 1000) / 10);
+      }
+    }
+
+    class Stage {
+      constructor(stageId, jobId, name, isShuffleMap, parentStageIds = [], rddIds = []) {
+        this.stageId = stageId;
+        this.jobId = jobId;
+        this.name = name;
+        this.isShuffleMap = isShuffleMap;
+        this.parentStageIds = parentStageIds;
+        this.rddIds = rddIds;
+        this.tasks = [];
+        this.status = 'PENDING';
+        this.shuffleWriteMb = 0.0;
+        this.shuffleReadMb = 0.0;
+      }
+      isReadyToRun(completedStageIds) {
+        return this.parentStageIds.every(id => completedStageIds.includes(id));
+      }
+      isCompleted() {
+        return this.tasks.length > 0 && this.tasks.every(t => t.status === 'SUCCESS');
+      }
+    }
+
+    class Job {
+      constructor(jobId, name, userId, actionName, targetRddId) {
+        this.jobId = jobId;
+        this.name = name;
+        this.userId = userId;
+        this.actionName = actionName;
+        this.targetRddId = targetRddId;
+        this.stages = [];
+        this.status = 'SUBMITTED';
+        this.submittedTick = 0;
+        this.startTick = null;
+        this.endTick = null;
+      }
+      durationTicks(currentTick) {
+        if (this.startTick === null) return 0;
+        if (this.endTick !== null) return this.endTick - this.startTick;
+        return currentTick - this.startTick;
+      }
+      progressPct() {
+        const allTasks = this.stages.flatMap(s => s.tasks);
+        if (allTasks.length === 0) return 0;
+        const completed = allTasks.filter(t => t.status === 'SUCCESS').length;
+        return Math.round((completed / allTasks.length) * 1000) / 10;
+      }
+    }
+
+    class WorkerNode {
+      constructor(workerId, host, coresTotal = 4, totalRamMb = 4096.0, storageFraction = 0.5) {
+        this.workerId = workerId;
+        this.host = host;
+        this.coresTotal = coresTotal;
+        this.coresUsed = 0;
+        this.totalRamMb = totalRamMb;
+        this.maxStorageRamMb = totalRamMb * storageFraction;
+        this.maxExecutionRamMb = totalRamMb * (1.0 - storageFraction);
+        this.usedStorageRamMb = 0.0;
+        this.usedExecutionRamMb = 0.0;
+        this.status = 'HEALTHY';
+        this.activeTasks = [];
+        this.cachedPartitions = new Map();
+        this.completedTasksCount = 0;
+        this.failedTasksCount = 0;
+      }
+      get availableCores() {
+        if (this.status !== 'HEALTHY') return 0;
+        return Math.max(0, this.coresTotal - this.coresUsed);
+      }
+      get freeExecutionRamMb() {
+        if (this.status !== 'HEALTHY') return 0.0;
+        return Math.max(0.0, this.maxExecutionRamMb - this.usedExecutionRamMb);
+      }
+      canAcceptTask(ramNeededMb = 100.0) {
+        return this.status === 'HEALTHY' && this.availableCores > 0 && this.freeExecutionRamMb >= ramNeededMb;
+      }
+      assignTask(task) {
+        if (!this.canAcceptTask(task.dataSizeMb)) return false;
+        task.workerId = this.workerId;
+        task.status = 'RUNNING';
+        this.activeTasks.push(task);
+        this.coresUsed++;
+        this.usedExecutionRamMb += task.dataSizeMb;
+        return true;
+      }
+      releaseTask(task, success = true) {
+        const idx = this.activeTasks.indexOf(task);
+        if (idx !== -1) {
+          this.activeTasks.splice(idx, 1);
+          this.coresUsed = Math.max(0, this.coresUsed - 1);
+          this.usedExecutionRamMb = Math.max(0.0, this.usedExecutionRamMb - task.dataSizeMb);
+          if (success) this.completedTasksCount++;
+          else this.failedTasksCount++;
+        }
+      }
+      cachePartition(partition) {
+        const key = `${partition.rddId}_${partition.index}`;
+        if (this.usedStorageRamMb + partition.sizeMb <= this.maxStorageRamMb) {
+          this.cachedPartitions.set(key, partition);
+          this.usedStorageRamMb += partition.sizeMb;
+          partition.markSuccess(true);
+          return true;
+        }
+        partition.markSuccess(false);
+        return false;
+      }
+      kill() {
+        this.status = 'DEAD';
+        const lostTasks = [...this.activeTasks];
+        this.activeTasks = [];
+        this.coresUsed = 0;
+        this.usedExecutionRamMb = 0.0;
+        for (const part of this.cachedPartitions.values()) part.markLost();
+        this.cachedPartitions.clear();
+        this.usedStorageRamMb = 0.0;
+        for (const t of lostTasks) {
+          t.status = 'FAILED';
+          this.failedTasksCount++;
+        }
+        return lostTasks;
+      }
+      revive() {
+        this.status = 'HEALTHY';
+        this.coresUsed = 0;
+        this.activeTasks = [];
+        this.usedExecutionRamMb = 0.0;
+        this.usedStorageRamMb = 0.0;
+        this.cachedPartitions.clear();
+      }
+      cpuUtilizationPct() {
+        if (this.status !== 'HEALTHY' || this.coresTotal === 0) return 0.0;
+        return Math.round((this.coresUsed / this.coresTotal) * 1000) / 10;
+      }
+      ramUtilizationPct() {
+        if (this.status !== 'HEALTHY' || this.totalRamMb === 0) return 0.0;
+        const totalUsed = this.usedExecutionRamMb + this.usedStorageRamMb;
+        return Math.round((totalUsed / this.totalRamMb) * 1000) / 10;
+      }
+    }
+
+    class DriverNode {
+      constructor(driverId = 'driver-master', ramMb = 2048.0) {
+        this.driverId = driverId;
+        this.ramMb = ramMb;
+        this.rdds = new Map();
+        this.jobs = new Map();
+      }
+      parallelize(name, numPartitions, totalDataSizeMb, skewFactor = 1.0) {
+        const rdd = new RDD(name, 'parallelize', numPartitions, [], 'NARROW', totalDataSizeMb, skewFactor);
+        this.registerRdd(rdd);
+        return rdd;
+      }
+      registerRdd(rdd) {
+        for (const node of rdd.getLineage()) this.rdds.set(node.id, node);
+      }
+      createJob(targetRdd, actionName, userId, jobName) {
+        jobIdCounter++;
+        this.registerRdd(targetRdd);
+        const job = new Job(jobIdCounter, jobName, userId, actionName, targetRdd.id);
+        this.jobs.set(job.jobId, job);
+        return job;
+      }
+      getRdd(rddId) { return this.rdds.get(rddId); }
+    }
+
+    class DAGScheduler {
+      createStagesForJob(job, targetRdd) {
+        const visitedRdds = new Set();
+        const stages = [];
+        const rddToStage = new Map();
+
+        const buildStage = (currentRdd, isResultStage) => {
+          stageIdCounter++;
+          const stageId = stageIdCounter;
+          const stageName = `Stage-${stageId} (${isResultStage ? 'Result' : 'ShuffleMap'}: ${currentRdd.operation})`;
+          const stage = new Stage(stageId, job.jobId, stageName, !isResultStage, [], [currentRdd.id]);
+
+          const queue = [currentRdd];
+          while (queue.length > 0) {
+            const rdd = queue.shift();
+            visitedRdds.add(rdd.id);
+            rddToStage.set(rdd.id, stage);
+
+            for (const parent of rdd.parents) {
+              if (rdd.dependencyType === 'WIDE' || parent.dependencyType === 'WIDE') {
+                let parentStage;
+                if (!visitedRdds.has(parent.id)) {
+                  parentStage = buildStage(parent, false);
+                  stages.push(parentStage);
+                } else {
+                  parentStage = rddToStage.get(parent.id);
+                }
+                if (parentStage && !stage.parentStageIds.includes(parentStage.stageId)) {
+                  stage.parentStageIds.push(parentStage.stageId);
+                }
+              } else {
+                if (!stage.rddIds.includes(parent.id)) stage.rddIds.push(parent.id);
+                queue.push(parent);
+              }
+            }
+          }
+          stage.tasks = this._createTasksForStage(stage, currentRdd);
+          return stage;
+        };
+
+        const finalStage = buildStage(targetRdd, true);
+        stages.push(finalStage);
+
+        const stageMap = new Map(stages.map(s => [s.stageId, s]));
+        const sorted = [];
+        const visited = new Set();
+        const visit = (s) => {
+          if (!visited.has(s.stageId)) {
+            visited.add(s.stageId);
+            for (const pid of s.parentStageIds) {
+              if (stageMap.has(pid)) visit(stageMap.get(pid));
+            }
+            sorted.push(s);
+          }
+        };
+        for (const s of stages) visit(s);
+        job.stages = sorted;
+        return sorted;
+      }
+
+      _createTasksForStage(stage, rdd) {
+        const tasks = [];
+        for (const partition of rdd.partitions) {
+          taskIdCounter++;
+          const ticksNeeded = Math.max(3, Math.floor(partition.sizeMb / 10.0));
+          tasks.push(new Task(taskIdCounter, stage.stageId, partition.index, rdd.id, partition.sizeMb, ticksNeeded));
+        }
+        return tasks;
+      }
+    }
+
+    class TaskScheduler {
+      constructor(workers) {
+        this.workers = workers;
+        this.jobQueue = [];
+      }
+      enqueueJob(job) { this.jobQueue.push(job); }
+      getActiveJob() {
+        return this.jobQueue.find(j => j.status === 'SUBMITTED' || j.status === 'RUNNING') || null;
+      }
+      schedulePendingTasks(currentTick) {
+        const activeJob = this.getActiveJob();
+        if (!activeJob) return 0;
+        if (activeJob.status === 'SUBMITTED') {
+          activeJob.status = 'RUNNING';
+          activeJob.startTick = currentTick;
+        }
+
+        const completedStageIds = activeJob.stages.filter(s => s.status === 'COMPLETED').map(s => s.stageId);
+        let assigned = 0;
+
+        for (const stage of activeJob.stages) {
+          if (stage.status === 'COMPLETED') continue;
+          if (!stage.isReadyToRun(completedStageIds)) continue;
+          if (stage.status === 'PENDING') stage.status = 'RUNNING';
+
+          const pendingTasks = stage.tasks.filter(t => t.status === 'PENDING');
+          if (pendingTasks.length === 0) {
+            if (stage.tasks.every(t => t.status === 'SUCCESS')) {
+              stage.status = 'COMPLETED';
+              completedStageIds.push(stage.stageId);
+            }
+            continue;
+          }
+
+          for (const task of pendingTasks) {
+            const available = this.workers.filter(w => w.canAcceptTask(task.dataSizeMb));
+            if (available.length > 0) {
+              // Chequeo de localidad
+              const partKey = `${task.rddId}_${task.partitionIndex}`;
+              let targetWorker = available.find(w => w.cachedPartitions.has(partKey));
+              if (!targetWorker) {
+                available.sort((a, b) => b.availableCores - a.availableCores);
+                targetWorker = available[0];
+              }
+              if (targetWorker.assignTask(task)) assigned++;
+            } else {
+              break;
+            }
+          }
+        }
+
+        if (activeJob.stages.every(s => s.status === 'COMPLETED')) {
+          activeJob.status = 'COMPLETED';
+          activeJob.endTick = currentTick;
+        }
+        return assigned;
+      }
+    }
+
+    class MetricsTracker {
+      constructor() {
+        this.tickHistory = [];
+        this.cpuHistory = [];
+        this.ramHistory = [];
+        this.totalShuffleBytesMb = 0.0;
+        this.completedJobsMetrics = [];
+      }
+      recordTick(tick, workers) {
+        const active = workers.filter(w => w.status !== 'DEAD');
+        const avgCpu = active.length > 0 ? active.reduce((acc, w) => acc + w.cpuUtilizationPct(), 0) / active.length : 0;
+        const totalRamUsed = active.reduce((acc, w) => acc + w.usedExecutionRamMb + w.usedStorageRamMb, 0);
+
+        this.tickHistory.push(tick);
+        this.cpuHistory.push(Math.round(avgCpu * 10) / 10);
+        this.ramHistory.push(Math.round(totalRamUsed * 10) / 10);
+
+        if (this.tickHistory.length > 100) {
+          this.tickHistory.shift();
+          this.cpuHistory.shift();
+          this.ramHistory.shift();
+        }
+      }
+      recordJobCompleted(job, currentTick) {
+        const duration = job.durationTicks(currentTick);
+        const totalTasks = job.stages.flatMap(s => s.tasks).length;
+        const recomputed = job.stages.flatMap(s => s.tasks).filter(t => t.isRecomputation).length;
+        const shuffleMb = job.stages.reduce((acc, s) => acc + s.shuffleWriteMb, 0);
+
+        this.totalShuffleBytesMb += shuffleMb;
+        this.completedJobsMetrics.push({
+          jobId: job.jobId,
+          jobName: job.name,
+          userId: job.userId,
+          durationTicks: duration,
+          totalTasks,
+          recomputedTasks: recomputed,
+          shuffleMb: Math.round(shuffleMb * 100) / 100,
+          endTick: currentTick
+        });
+      }
+    }
+
+    class SparkSimulator {
+      constructor() {
+        this.currentTick = 0;
+        this.driver = new DriverNode('driver-master', 2048.0);
+        this.workers = [
+          new WorkerNode('worker-1', '192.168.1.101', 4, 4096.0),
+          new WorkerNode('worker-2', '192.168.1.102', 4, 4096.0),
+          new WorkerNode('worker-3', '192.168.1.103', 4, 4096.0),
+          new WorkerNode('worker-4', '192.168.1.104', 4, 4096.0)
+        ];
+        this.dagScheduler = new DAGScheduler();
+        this.taskScheduler = new TaskScheduler(this.workers);
+        this.metricsTracker = new MetricsTracker();
+        this.eventLog = [];
+        this.totalNodeFailures = 0;
+        this.totalTasksRetried = 0;
+        this.totalPartitionsRecomputed = 0;
+      }
+      submitJob(targetRdd, actionName, userId, jobName) {
+        const job = this.driver.createJob(targetRdd, actionName, userId, jobName);
+        job.submittedTick = this.currentTick;
+        this.dagScheduler.createStagesForJob(job, targetRdd);
+        this.taskScheduler.enqueueJob(job);
+        this.logEvent('JOB_SUBMITTED', `Usuario [${userId}] envió Job #${job.jobId} ('${job.name}') con ${job.stages.length} Stages.`);
+        return job;
+      }
+      killWorker(workerId) {
+        const worker = this.workers.find(w => w.workerId === workerId);
+        if (!worker || worker.status === 'DEAD') return false;
+        this.totalNodeFailures++;
+        const lostTasks = worker.kill();
+        this.logEvent('WORKER_CRASH', `El nodo ${workerId} se ha caído. ${lostTasks.length} tareas en ejecución interrumpidas.`);
+
+        const activeJob = this.taskScheduler.getActiveJob();
+        if (activeJob) {
+          for (const stage of activeJob.stages) {
+            if (stage.status === 'COMPLETED') continue;
+            for (const task of stage.tasks) {
+              if (task.workerId === worker.workerId && task.status === 'FAILED') {
+                task.status = 'PENDING';
+                task.workerId = null;
+                task.attempt++;
+                task.isRecomputation = true;
+                task.elapsedTicks = 0;
+                this.totalTasksRetried++;
+                this.totalPartitionsRecomputed++;
+                this.logEvent('LINEAGE_RECOMPUTATION', `Resiliencia Spark activada: Tarea #${task.taskId} (Partición ${task.partitionIndex}) será recalculada en otro nodo usando el grafo de linaje del RDD #${task.rddId}.`);
+              }
+            }
+          }
+        }
+        return true;
+      }
+      reviveWorker(workerId) {
+        const worker = this.workers.find(w => w.workerId === workerId);
+        if (!worker || worker.status === 'HEALTHY') return false;
+        worker.revive();
+        this.logEvent('WORKER_RECOVERED', `El nodo ${workerId} ha sido reiniciado y tiene ${worker.coresTotal} cores.`);
+        return true;
+      }
+      step() {
+        this.currentTick++;
+        const activeJob = this.taskScheduler.getActiveJob();
+
+        for (const worker of this.workers) {
+          if (worker.status !== 'HEALTHY') continue;
+          for (const task of [...worker.activeTasks]) {
+            task.elapsedTicks++;
+            if (task.elapsedTicks >= task.totalTicksNeeded) {
+              task.status = 'SUCCESS';
+              worker.releaseTask(task, true);
+
+              const rdd = this.driver.getRdd(task.rddId);
+              if (rdd && task.partitionIndex < rdd.partitions.length) {
+                const partition = rdd.partitions[task.partitionIndex];
+                if (rdd.isCached) worker.cachePartition(partition);
+                else partition.markSuccess(false);
+              }
+
+              if (activeJob) {
+                for (const stage of activeJob.stages) {
+                  if (stage.stageId === task.stageId && stage.isShuffleMap) {
+                    stage.shuffleWriteMb += task.dataSizeMb;
+                  }
+                }
+              }
+            }
+          }
+        }
+
+        this.taskScheduler.schedulePendingTasks(this.currentTick);
+
+        if (activeJob && activeJob.status === 'COMPLETED' && activeJob.endTick === this.currentTick) {
+          this.metricsTracker.recordJobCompleted(activeJob, this.currentTick);
+          this.logEvent('JOB_COMPLETED', `Job #${activeJob.jobId} finalizado exitosamente en ${activeJob.durationTicks(this.currentTick)} ticks.`);
+        }
+
+        this.metricsTracker.recordTick(this.currentTick, this.workers);
+      }
+      logEvent(type, message) {
+        this.eventLog.push({ tick: this.currentTick, type, message });
+      }
+    }
+
+    // ==========================================
+    // 2. Control de Interfaz y Estado Global
+    // ==========================================
+    let sim = new SparkSimulator();
+    let isPlaying = false;
+    let timerId = null;
+    let playSpeedMs = 400;
+
+    function renderUI() {
+      // 1. Tick
+      document.getElementById('current-tick').innerText = sim.currentTick;
+
+      // 2. Resumen Topología
+      const totalCores = sim.workers.reduce((acc, w) => acc + w.coresTotal, 0);
+      const usedCores = sim.workers.filter(w => w.status !== 'DEAD').reduce((acc, w) => acc + w.coresUsed, 0);
+      const totalRam = sim.workers.reduce((acc, w) => acc + w.totalRamMb, 0);
+      const usedRam = sim.workers.filter(w => w.status !== 'DEAD').reduce((acc, w) => acc + w.usedExecutionRamMb + w.usedStorageRamMb, 0);
+
+      document.getElementById('cores-summary').innerText = `${usedCores} / ${totalCores}`;
+      document.getElementById('ram-summary').innerText = `${Math.round(usedRam)} / ${Math.round(totalRam)} MB`;
+      document.getElementById('driver-jobs-count').innerText = sim.driver.jobs.size;
+
+      // 3. Workers Grid
+      const workersContainer = document.getElementById('workers-grid');
+      workersContainer.innerHTML = sim.workers.map(w => {
+        const isDead = w.status === 'DEAD';
+        return `
+          <div class="worker-card ${isDead ? 'dead' : ''}">
+            <div class="worker-header">
+              <div class="worker-title">🖥️ ${w.workerId}</div>
+              <span class="badge-status ${isDead ? 'badge-dead' : 'badge-healthy'}">
+                ${isDead ? 'FALLIDO' : 'SALUDABLE'}
+              </span>
+            </div>
+            <div class="metric-row">
+              <div class="metric-label-row">
+                <span>Cores (${w.coresUsed}/${w.coresTotal})</span>
+                <span>${w.cpuUtilizationPct()}%</span>
+              </div>
+              <div class="bar-bg">
+                <div class="bar-fill-cpu" style="width: ${w.cpuUtilizationPct()}%;"></div>
+              </div>
+            </div>
+            <div class="metric-row">
+              <div class="metric-label-row">
+                <span>RAM (${Math.round(w.usedExecutionRamMb + w.usedStorageRamMb)} / ${Math.round(w.totalRamMb)} MB)</span>
+                <span>${w.ramUtilizationPct()}%</span>
+              </div>
+              <div class="bar-bg">
+                <div class="bar-fill-ram" style="width: ${w.ramUtilizationPct()}%;"></div>
+              </div>
+            </div>
+            <div style="font-size: 0.7rem; color: #94a3b8; display: flex; justify-content: space-between;">
+              <span>Tareas activas: <strong>${w.activeTasks.length}</strong></span>
+              <span>Particiones RAM: <strong>${w.cachedPartitions.size}</strong></span>
+            </div>
+            <div class="worker-actions">
+              ${isDead 
+                ? `<button class="btn-worker-revive" onclick="reviveWorker('${w.workerId}')">💚 Revivir</button>` 
+                : `<button class="btn-worker-kill" onclick="killWorker('${w.workerId}')">⚠️ Matar Nodo</button>`}
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      // 4. Cola FIFO
+      const queueList = document.getElementById('queue-list');
+      const queuedJobs = sim.taskScheduler.jobQueue.filter(j => j.status === 'SUBMITTED');
+      document.getElementById('queue-count').innerText = queuedJobs.length;
+      if (queuedJobs.length === 0) {
+        queueList.innerHTML = `<p class="empty-state">No hay trabajos en espera. El clúster está libre.</p>`;
+      } else {
+        queueList.innerHTML = queuedJobs.map((q, idx) => `
+          <div class="queue-item">
+            <span><strong>#${idx + 1}</strong> [${q.userId}] ${q.name}</span>
+            <span style="color: #38bdf8;">${q.stages.flatMap(s => s.tasks).length} tareas</span>
+          </div>
+        `).join('');
+      }
+
+      // 5. Trabajo Activo
+      const activeJob = sim.taskScheduler.getActiveJob();
+      const badge = document.getElementById('active-job-badge');
+
+      if (!activeJob) {
+        badge.className = 'badge-status badge-dead';
+        badge.innerText = 'SIN TRABAJO ACTIVO';
+        document.getElementById('job-name').innerText = '-';
+        document.getElementById('job-user').innerText = '-';
+        document.getElementById('job-action').innerText = '-';
+        document.getElementById('job-duration').innerText = '0 ticks';
+        document.getElementById('job-progress-pct').innerText = '0%';
+        document.getElementById('job-progress-fill').style.width = '0%';
+        document.getElementById('stages-list').innerHTML = '<p class="empty-state">En espera de acción Spark...</p>';
+        document.getElementById('tasks-grid').innerHTML = '';
+      } else {
+        badge.className = 'badge-status badge-healthy';
+        badge.innerText = `JOB #${activeJob.jobId} EN EJECUCIÓN`;
+        document.getElementById('job-name').innerText = activeJob.name;
+        document.getElementById('job-user').innerText = activeJob.userId;
+        document.getElementById('job-action').innerText = activeJob.actionName;
+        document.getElementById('job-duration').innerText = `${activeJob.durationTicks(sim.currentTick)} ticks`;
+        document.getElementById('job-progress-pct').innerText = `${activeJob.progressPct()}%`;
+        document.getElementById('job-progress-fill').style.width = `${activeJob.progressPct()}%`;
+
+        // Renderizar Stages
+        const stagesContainer = document.getElementById('stages-list');
+        stagesContainer.innerHTML = activeJob.stages.map(st => {
+          const completed = st.tasks.filter(t => t.status === 'SUCCESS').length;
+          const total = st.tasks.length;
+          const pct = Math.round((completed / Math.max(1, total)) * 100);
+          return `
+            <div class="stage-card ${st.isShuffleMap ? 'shuffle' : 'result'}">
+              <div>
+                <strong>${st.name}</strong> 
+                <span style="color: #64748b; font-size: 0.7rem;">(${st.isShuffleMap ? 'Escribe Shuffle para siguiente etapa' : 'Produce resultado al Driver'})</span>
+              </div>
+              <div>
+                <span>${completed} / ${total} tareas (${pct}%)</span>
+              </div>
+            </div>
+          `;
+        }).join('');
+
+        // Renderizar Tareas
+        const tasksGrid = document.getElementById('tasks-grid');
+        const allTasks = activeJob.stages.flatMap(st => st.tasks);
+        tasksGrid.innerHTML = allTasks.map(t => {
+          let statusClass = 'pending';
+          if (t.isRecomputation) statusClass = 'recomputing';
+          else if (t.status === 'RUNNING') statusClass = 'running';
+          else if (t.status === 'SUCCESS') statusClass = 'success';
+
+          return `
+            <div class="task-cell ${statusClass}" title="Tarea #${t.taskId} | Partición: ${t.partitionIndex} | Worker: ${t.workerId || 'N/A'}">
+              <div>T#${t.taskId}</div>
+              <div>${t.status === 'RUNNING' ? t.progressPct() + '%' : t.status.substring(0, 4)}</div>
+            </div>
+          `;
+        }).join('');
+      }
+
+      // 6. KPIs
+      document.getElementById('kpi-shuffle').innerText = `${Math.round(sim.metricsTracker.totalShuffleBytesMb)} MB`;
+      document.getElementById('kpi-recomputed').innerText = sim.totalTasksRetried;
+      document.getElementById('kpi-completed-jobs').innerText = sim.metricsTracker.completedJobsMetrics.length;
+
+      // 7. Registro de Eventos
+      const logsContainer = document.getElementById('event-logs');
+      logsContainer.innerHTML = sim.eventLog.slice(-15).map(ev => `
+        <div class="log-entry">
+          <span class="log-tick">[Tick ${ev.tick}]</span>
+          <span class="log-type ${ev.type}">${ev.type}</span>
+          <span class="log-msg">${ev.message}</span>
+        </div>
+      `).join('');
+
+      // 8. Gráficos en Canvas Puro
+      drawCanvasChart('cpuCanvas', sim.metricsTracker.tickHistory, sim.metricsTracker.cpuHistory, 'Uso CPU Clúster (%)', '#f97316', 100);
+      drawCanvasChart('ramCanvas', sim.metricsTracker.tickHistory, sim.metricsTracker.ramHistory, 'RAM en Uso (MB)', '#38bdf8', totalRam);
+    }
+
+    // ==========================================
+    // 3. Renderizador de Gráficos en Canvas Puro
+    // (Garantiza funcionamiento 100% offline)
+    // ==========================================
+    function drawCanvasChart(canvasId, labels, data, title, color, maxVal) {
+      const canvas = document.getElementById(canvasId);
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      const w = canvas.width = canvas.parentElement.clientWidth;
+      const h = canvas.height = canvas.parentElement.clientHeight;
+
+      ctx.clearRect(0, 0, w, h);
+
+      // Título
+      ctx.fillStyle = '#94a3b8';
+      ctx.font = '11px sans-serif';
+      ctx.fillText(title, 10, 15);
+
+      if (data.length < 2) {
+        ctx.fillStyle = '#64748b';
+        ctx.fillText('Esperando datos de ejecución...', w / 2 - 80, h / 2);
+        return;
+      }
+
+      const paddingLeft = 40;
+      const paddingBottom = 20;
+      const paddingTop = 25;
+      const plotW = w - paddingLeft - 10;
+      const plotH = h - paddingTop - paddingBottom;
+
+      // Eje Y y líneas de guía
+      ctx.strokeStyle = 'rgba(51, 65, 85, 0.4)';
+      ctx.lineWidth = 1;
+      for (let i = 0; i <= 4; i++) {
+        const y = paddingTop + (plotH / 4) * i;
+        ctx.beginPath();
+        ctx.moveTo(paddingLeft, y);
+        ctx.lineTo(w - 10, y);
+        ctx.stroke();
+
+        const val = Math.round(maxVal - (maxVal / 4) * i);
+        ctx.fillStyle = '#64748b';
+        ctx.font = '9px monospace';
+        ctx.fillText(val, 5, y + 3);
+      }
+
+      // Trazado de línea de datos
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+
+      const stepX = plotW / (data.length - 1);
+      for (let i = 0; i < data.length; i++) {
+        const x = paddingLeft + i * stepX;
+        const ratio = Math.max(0, Math.min(1, data[i] / maxVal));
+        const y = paddingTop + plotH - ratio * plotH;
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+
+      // Relleno bajo la curva
+      ctx.lineTo(paddingLeft + (data.length - 1) * stepX, paddingTop + plotH);
+      ctx.lineTo(paddingLeft, paddingTop + plotH);
+      ctx.closePath();
+      ctx.fillStyle = color.replace(')', ', 0.15)').replace('rgb', 'rgba').replace('#f97316', 'rgba(249, 115, 22, 0.15)').replace('#38bdf8', 'rgba(56, 189, 248, 0.15)');
+      ctx.fill();
+    }
+
+    // ==========================================
+    // 4. Acciones y Manejadores de Eventos
+    // ==========================================
+    function togglePlay() {
+      isPlaying = !isPlaying;
+      const btn = document.getElementById('btn-play');
+      if (isPlaying) {
+        btn.className = 'btn btn-danger';
+        btn.innerHTML = '⏸ Pausar';
+        timerId = setInterval(() => {
+          sim.step();
+          renderUI();
+        }, playSpeedMs);
+      } else {
+        btn.className = 'btn btn-primary';
+        btn.innerHTML = '▶ Iniciar';
+        if (timerId) clearInterval(timerId);
+      }
+      renderUI();
+    }
+
+    function stepOnce() {
+      sim.step();
+      renderUI();
+    }
+
+    function resetCluster() {
+      if (isPlaying) togglePlay();
+      sim = new SparkSimulator();
+      renderUI();
+    }
+
+    function updateSpeed(val) {
+      playSpeedMs = parseInt(val);
+      if (isPlaying) {
+        clearInterval(timerId);
+        timerId = setInterval(() => {
+          sim.step();
+          renderUI();
+        }, playSpeedMs);
+      }
+    }
+
+    function killWorker(id) {
+      sim.killWorker(id);
+      renderUI();
+    }
+
+    function reviveWorker(id) {
+      sim.reviveWorker(id);
+      renderUI();
+    }
+
+    function submitCustomJob() {
+      const type = document.getElementById('job-type').value;
+      const user = document.getElementById('user-id').value;
+      const size = parseFloat(document.getElementById('data-size').value);
+      const parts = parseInt(document.getElementById('num-partitions').value);
+      const skew = parseFloat(document.getElementById('skew-factor').value);
+
+      if (type === 'analyst') {
+        const raw = sim.driver.parallelize('web_logs', parts, size);
+        const filtered = raw.filter('filter(status == 200)');
+        sim.submitJob(filtered, 'count()', user, 'Analyst Query: Filter & Count');
+      } else if (type === 'etl') {
+        const raw = sim.driver.parallelize('transactions', parts, size, skew);
+        const cleaned = raw.map('clean');
+        const grouped = cleaned.groupByKey('groupByClient', parts, skew);
+        const reduced = grouped.reduceByKey('sumBalances', parts);
+        sim.submitJob(reduced, 'saveAsTextFile(/warehouse)', user, 'Data Pipeline: Monthly Balance ETL');
+      } else if (type === 'ml') {
+        const raw = sim.driver.parallelize('iris_features', parts, size);
+        const scaled = raw.map('normalize').persist('MEMORY_ONLY');
+        sim.submitJob(scaled, 'collect(weights)', user, 'ML Training: KMeans Centroids');
+      } else if (type === 'burst') {
+        const r1 = sim.driver.parallelize('logs_burst', 4, 60.0);
+        sim.submitJob(r1.filter('filter()'), 'count()', 'analyst_pedro', 'Analyst Burst Query');
+
+        const r2 = sim.driver.parallelize('tx_burst', 8, 250.0);
+        sim.submitJob(r2.map('clean').groupByKey('grp').reduceByKey('sum'), 'save()', 'engineer_sofia', 'ETL Burst Pipeline');
+
+        const r3 = sim.driver.parallelize('ml_burst', 4, 150.0);
+        sim.submitJob(r3.map('scale').persist(), 'collect()', 'scientist_andres', 'ML Burst Model');
+      }
+      renderUI();
+    }
+
+    function updateJobDefaults() {
+      const type = document.getElementById('job-type').value;
+      const u = document.getElementById('user-id');
+      const s = document.getElementById('data-size');
+      const p = document.getElementById('num-partitions');
+      const sk = document.getElementById('skew-factor');
+
+      if (type === 'analyst') { u.value = 'analyst_maria'; s.value = '80'; p.value = '4'; sk.value = '1.0'; }
+      else if (type === 'etl') { u.value = 'engineer_carlos'; s.value = '350'; p.value = '8'; sk.value = '1.0'; }
+      else if (type === 'ml') { u.value = 'scientist_laura'; s.value = '160'; p.value = '4'; sk.value = '1.0'; }
+      else if (type === 'burst') { u.value = 'multiuser_burst'; s.value = '300'; p.value = '8'; sk.value = '1.0'; }
+    }
+
+    function loadScenario(scenarioId) {
+      resetCluster();
+      if (scenarioId === 1) {
+        const r1 = sim.driver.parallelize('web_logs', 4, 60.0);
+        sim.submitJob(r1.filter('filter(status==200)'), 'count()', 'analyst_lucia', 'Escenario 1: Consulta Interactiva');
+
+        const r2 = sim.driver.parallelize('tx_2026', 8, 200.0);
+        sim.submitJob(r2.map('normalize').groupByKey('grp').reduceByKey('sum'), 'saveAsTextFile()', 'engineer_marco', 'Escenario 1: Pipeline ETL Batch');
+      } else if (scenarioId === 2) {
+        const r = sim.driver.parallelize('big_data_tx', 12, 300.0);
+        sim.submitJob(r.map('clean').groupByKey('client_id').reduceByKey('sum_balance'), 'saveAsTextFile(/hdfs)', 'engineer_diego', 'Escenario 2: ETL con Caída de Nodo');
+      } else if (scenarioId === 3) {
+        const r = sim.driver.parallelize('skewed_tx', 8, 300.0, 3.5);
+        sim.submitJob(r.map('clean').groupByKey('client_id', 8, 3.5).reduceByKey('sum'), 'save()', 'engineer_skewed', 'Escenario 3: Data Skew (Straggler)');
+      } else if (scenarioId === 4) {
+        const r1 = sim.driver.parallelize('query_a', 4, 50.0);
+        sim.submitJob(r1.filter('status==200'), 'count()', 'analyst_pedro', 'Escenario 4: Consulta Analista');
+
+        const r2 = sim.driver.parallelize('etl_b', 8, 250.0);
+        sim.submitJob(r2.map('clean').groupByKey('k').reduceByKey('sum'), 'save()', 'engineer_sofia', 'Escenario 4: Pipeline Ingeniero');
+
+        const r3 = sim.driver.parallelize('ml_c', 4, 150.0);
+        sim.submitJob(r3.map('normalize').persist(), 'collect()', 'scientist_andres', 'Escenario 4: ML Científico');
+      }
+      renderUI();
+    }
+
+    // Inicialización al cargar la página
+    window.addEventListener('DOMContentLoaded', () => {
+      renderUI();
+      window.addEventListener('resize', renderUI);
+    });
+  </script>
+</body>
+</html>
