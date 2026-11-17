@@ -4,7 +4,7 @@
 Procesamiento de Datos a Gran Escala · Taller de clasificación  
 **Autor** Andrés Felipe Díaz Torres · **Profesor** John Corredor
 
-[Ver el cuaderno del taller](./DiazTallerStroke.ipynb)
+[Ver el cuaderno del taller](./DiazICTUS_1055.ipynb)
 
 ## Qué se hizo en el taller
 
@@ -29,7 +29,7 @@ En esta ejecución, **Naive Bayes** fue el único que detectó casos de derrame.
 
 ## Cómo abrir y ejecutar el cuaderno
 
-1. Abre el [archivo `.ipynb`](./DiazTallerStroke.ipynb) para consultar las gráficas, métricas y conclusiones guardadas.
+1. Abre el [archivo `.ipynb`](./DiazICTUS_1055.ipynb) para consultar las gráficas, métricas y conclusiones guardadas.
 2. Para volver a ejecutarlo, prepara un entorno con Python, Jupyter, una instalación compatible de Java y Apache Spark, y las bibliotecas `pyspark`, `findspark`, `numpy`, `pandas`, `scikit-learn`, `matplotlib` y `seaborn`.
 3. El cuaderno está configurado para el entorno Spark/HDFS del curso. En otro entorno, adapta la ruta de Spark, el comando de HDFS y la celda que carga `stroke_pyspark.csv`. Si tienes una copia local del CSV, puedes leerla directamente con Spark.
 4. Ejecuta las celdas en orden. La división de entrenamiento y prueba es aleatoria, así que una ejecución nueva puede producir valores distintos de los de la tabla.
